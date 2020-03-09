@@ -1,4 +1,4 @@
-import 'package:learn_test/main.dart';
+import 'package:learn_test/http_client.dart';
 import 'package:mock_web_server/mock_web_server.dart';
 import 'package:flutter_test/flutter_test.dart';
 

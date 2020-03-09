@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -27,14 +29,24 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final CounterObject _counter = CounterObject();
-  final HttpClient _httpClient = HttpClient(url: 'http://ewings.biz/');
+  final HttpClient _httpClient = HttpClient(
+      url:
+          'https://raw.githubusercontent.com/cheesejp/flutter-learn-test/master/test/example.json');
   int _code;
+  String _body;
 
   void _incrementCounter() {
-    setState(() => _code = 0);
-    _httpClient.getResponseCode().then((res) {
+    setState(() {
+      _code = 0;
+      _body = '';
+    });
+
+    var futureAll =
+        Future.wait([_httpClient.getResponseCode(), _httpClient.getBody()]);
+    futureAll.then((results) {
       setState(() {
-        _code = res;
+        _code = results[0];
+        _body = results[1];
         _counter.increment();
       });
     });
@@ -61,6 +73,10 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_code',
               style: Theme.of(context).textTheme.display1,
             ),
+            Text(
+              '$_body',
+              style: Theme.of(context).textTheme.display1,
+            ),
           ],
         ),
       ),
@@ -84,9 +100,26 @@ class CounterObject {
 class HttpClient {
   HttpClient({@required this.url});
   final String url;
+  http.Response _response;
+  Future<http.Response> _get() async {
+    this._response = await http.get(this.url);
+    return this._response;
+  }
 
   Future<int> getResponseCode() async {
-    http.Response response = await http.get(this.url);
-    return response.statusCode;
+    if (this._response == null) {
+      http.Response res = await this._get();
+      return res.statusCode;
+    }
+    return _response.statusCode;
+  }
+
+  Future<String> getBody() async {
+    if (this._response == null) {
+      http.Response res = await this._get();
+      return res.body;
+    }
+
+    return _response.body;
   }
 }
